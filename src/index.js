@@ -1,4 +1,3 @@
-```js
 require('dotenv').config();
 
 const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
@@ -64,4 +63,3 @@ client.login(config.token).catch(err => {
   logger.error(`Login failed: ${err.message}`);
   process.exit(1);
 });
-```
