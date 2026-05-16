@@ -1,10 +1,21 @@
+```js
 require('dotenv').config();
 
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const logger = require('./utils/logger');
 const config = require('../config/config');
+
+async function deployCommands(commandsData) {
+  const rest = new REST({ version: '10' }).setToken(config.token);
+  logger.info(`Auto-deploying ${commandsData.length} commands...`);
+  await rest.put(
+    Routes.applicationGuildCommands(config.clientId, config.guildId),
+    { body: commandsData }
+  );
+  logger.info('✅ Commands deployed successfully.');
+}
 
 const client = new Client({
   intents: [
@@ -36,6 +47,9 @@ function loadCommands(dir) {
 
 loadCommands(path.join(__dirname, 'commands'));
 
+const commandsData = [...client.commands.values()].map(c => c.data.toJSON());
+deployCommands(commandsData).catch(err => logger.error(`Deploy failed: ${err.message}`));
+
 const eventsDir = path.join(__dirname, 'events');
 for (const file of fs.readdirSync(eventsDir).filter(f => f.endsWith('.js'))) {
   const event = require(path.join(eventsDir, file));
@@ -50,3 +64,4 @@ client.login(config.token).catch(err => {
   logger.error(`Login failed: ${err.message}`);
   process.exit(1);
 });
+```
